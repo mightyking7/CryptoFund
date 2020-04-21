@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 
-df = pd.read_csv('C:/Users/techm/Desktop/dataMining/Project/bitcoin_dataset.csv')
+df = pd.read_csv('./data/bitcoin_dataset.csv')
 
 for i, row in df['btc_market_price'].iteritems():
     if df['btc_market_price'][i] == 0:

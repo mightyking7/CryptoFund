@@ -4,13 +4,19 @@ Created on Sat Apr 11 13:53:48 2020
 
 Wrangling crypto kaggle datasets to include additional features such as Volatility, MACD, Crossover
 """
+import sys
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib
+# Qt backend for Mac
+if sys.platform == "darwin":
+    matplotlib.use('Qt5Agg')
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from xgboost import XGBRegressor
+from wrangler import XGBRegressor
 
 # Time span of data, 01/01/2016 to 02/20/2018
 df_full_btc = pd.read_csv('bitcoin_dataset.csv')
@@ -73,6 +79,7 @@ df_btc_final.reset_index(drop=True, inplace=True)
 df_full_btc.reset_index(drop=True, inplace=True)
 
 df_btc_feature_set = pd.concat([df_btc_final, df_full_btc], axis=1)
+print(df_btc_feature_set.shape)
 X = np.array(df_btc_feature_set.iloc[:,1:])
 y = np.array(df_btc_feature_set['Close']).ravel()
 scaler = StandardScaler()
