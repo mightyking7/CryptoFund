@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-df = pd.read_csv("/content/drive/My Drive/Colab Notebooks/Crypto_Fund/df_btc_feature_set.csv", index_col=0)
+df = pd.read_csv("data/df_btc_feature_set.csv", index_col=0)
 #print(df.isna().sum())
 df.fillna(method="bfill", inplace=True)
 #print(df.isna().sum())
