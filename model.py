@@ -114,3 +114,4 @@ plt.legend(); plt.grid()
 plt.title("Ndays=10, Nneurons=256, dropout=0.2, Nhidden=2, Nepoch=5, batchSize=4")
 """
 
+# TODO load dataset from scratch, extract features, feed into LSTM using CV
