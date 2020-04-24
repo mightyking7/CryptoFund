@@ -44,17 +44,6 @@ y_test  = y[Ntrain:]
 print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
 
 # Create sequential data of size (Ninstances,Ndays,Nfeat)
-Ndays = 30
-X_train2 = np.zeros((Ntrain-Ndays,Ndays,nfeat))
-y_train2 = y_train[Ndays:]
-for k in range(Ndays, Ntrain):
-    X_train2[k-Ndays,:,:] = X_train[k-Ndays:k,:].reshape((1,Ndays,nfeat))
-
-X_test2 = np.zeros((Ntest-Ndays,Ndays,nfeat))
-y_test2 = y_test[Ndays:]
-for k in range(Ndays, Ntest):
-    X_test2[k-Ndays,:,:] = X_test[k-Ndays:k,:].reshape((1,Ndays,nfeat))
-
 X_train2 = np.zeros((Ntrain-Ndays,Ndays,Nfeat))
 X_test2 = np.zeros((Ntest-Ndays,Ndays,Nfeat))
 y_train2 = y_train[Ndays-1:-1]
@@ -64,7 +53,6 @@ for k in range(Ndays, Ntrain):
 for k in range(Ndays, Ntest):
     X_test2[k-Ndays,:,:] = X_test[k-Ndays:k,:].reshape((1,Ndays,Nfeat))
 
-
 print(X_train2.shape, y_train2.shape)
 print(X_test2.shape, y_test2.shape)
 
@@ -72,7 +60,6 @@ print(X_test2.shape, y_test2.shape)
 regressor = Sequential()
 
 # Adding the first LSTM layer and some Dropout regularization
-#regressor.add(LSTM(units = Nneurons, return_sequences = True, input_shape = X_train2.shape[1:]))
 regressor.add(LSTM(units = Nneurons, return_sequences=True, activation=activation_fx,
                    input_shape = X_train2.shape[1:]))
 regressor.add(Dropout(dropOut))
