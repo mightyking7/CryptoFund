@@ -16,13 +16,13 @@ if sys.platform == "darwin":
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from wrangler import XGBRegressor
+from xgboost import XGBRegressor
 
 # Time span of data, 01/01/2016 to 02/20/2018
-df_full_btc = pd.read_csv('bitcoin_dataset.csv')
+df_full_btc = pd.read_csv('data/bitcoin_dataset.csv')
 df_full_btc = df_full_btc.drop(df_full_btc.index[0:2138])
 
-df_btc = pd.read_csv('bitcoin_price.csv')
+df_btc = pd.read_csv('data/bitcoin_price.csv')
 df_btc = df_btc.reindex(index=df_btc.index[::-1])
 df_btc = df_btc.drop(df_btc.index[0:978])
 #df_full_eth = pd.read_csv('ethereum_dataset.csv')
@@ -37,6 +37,18 @@ f0, ax0 = plt.subplots(figsize=(14, 5))
 ax0 = sns.heatmap(corr_full_btc[corr_full_btc >= 0.5], cmap='Reds', annot=True, annot_kws={"size": 10})
 
 
+def translate(value, leftMin, leftMax, rightMin, rightMax):
+    # Figure out how 'wide' each range is
+    leftSpan = leftMax - leftMin
+    rightSpan = rightMax - rightMin
+
+    # Convert the left range into a 0-1 range (float)
+    valueScaled = (value - leftMin) / leftSpan
+
+    # Convert the 0-1 range into a value in the right range.
+    return rightMin + (valueScaled * rightSpan)
+
+
 #MACD indicator to identify the trend and the Bollinger Bands as a trade trigger, volatility, Crossover Signal
 def MACD_Bands(df):
     df['Volatility'] = (df['High'] - df['Low'])/df['Close']
@@ -49,6 +61,10 @@ def MACD_Bands(df):
     df['MACD'] = (df['12 ema'] - df['26 ema'])
     df['Signal'] = df['MACD'].copy().ewm(span=9).mean()
     df['Crossover'] = df['MACD'] - df['Signal']
+    df['UpperDiff'] = abs(df['30 upper band'] - df['Close'])
+    df['LowerDiff'] = abs(df['30 lower band'] - df['Close'])
+    df['Crossover'] = translate(df['Crossover'], df['Crossover'].min(), df['Crossover'].max(), df['Close'].min(), df['Close'].max())
+    df['CrossDiff'] = df['Crossover'] - df['Close']
     return df
 
 df_btc_final = MACD_Bands(df_btc)
@@ -58,7 +74,7 @@ df_btc_final['Market Cap'] = df_btc_final['Market Cap'].str.replace(',', '').ast
 df_btc_final = df_btc_final.drop(['Market Cap'], axis=1)
 
 f1, ax = plt.subplots(figsize=(14, 5))
-ax = sns.lineplot(data=df_btc.iloc[:,4], legend='brief', label=str('Close Price'))
+ax = sns.lineplot(data=df_btc_final['Close'], legend='brief', label=str('Close Price'))
 ax2 = plt.twinx()
 ax.set(xlabel='Time [days]', ylabel='Close Price')
 ax2.set(ylabel='Crossover Value')
