@@ -22,6 +22,7 @@ def load_extract(cryptocurrency):
     :return: dataframe of data
     """
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
+    df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
     df = df['Close'].copy()
     df = df[0:10].copy().transpose()
     return df
@@ -35,4 +36,6 @@ df_ltc = load_extract('litecoin')
 df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
 
+
+print(df_btc)
 
