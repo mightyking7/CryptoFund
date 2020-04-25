@@ -7,6 +7,9 @@ Created on Fri Apr 24 21:01:56 2020
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 #import ray
 #try:
 #    from ray.rllib.agents.agent import get_agent_class
@@ -39,3 +42,4 @@ df_xrp = load_extract('ripple')
 trent_output = pd.DataFrame(data=[df_btc, df_eth, df_dash, df_ltc, df_xmr, df_xrp])
 
 trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple'] 
+sns.distplot(df_btc, bins=20, kde=False, rug=True)
