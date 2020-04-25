@@ -66,15 +66,3 @@ def load_extract(cryptocurrency):
     df.fillna(method="bfill", inplace=True)
     return df
 
-df_btc = load_extract('bitcoin') #loads bitcoin
-
-df_eth = load_extract('ethereum') #loads ethereum
-
-df_dash = load_extract('dash') #loads dash
-
-df_ltc = load_extract('litecoin') #loads litecoin
-
-df_xmr = load_extract('monero') #loads monero
-
-df_xrp = load_extract('ripple') #loads ripple
-

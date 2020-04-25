@@ -59,6 +59,7 @@ Nfeat = df.shape[1]
 # We should probably scale the data each day independently
 sc = MinMaxScaler(feature_range = (-1, 1))
 scaled = sc.fit_transform(df)
+
 #scaled = np.array(df)
 y = scaled[1:,0] # tomorrow's price
 X = scaled[:-1,:] # use today's price to predict tomorrow's
@@ -89,19 +90,31 @@ for k in range(Ndays, Ntest):
 print(X_train2.shape, y_train2.shape)
 print(X_test2.shape, y_test2.shape)
 
+# CV
+# kf = KFold(n_splits=5, random_state=None, shuffle=False)
 
 inShape = X_train2.shape[1:]
 regressor = build_model(inShape, pred_size, Nneurons, Nlstm_layers, activation_fx, 
                 dropOut, loss=lossFx)
+
+# # train LSTM on folds of data
+# for train_index, test_index in kf.split(X):
+#     X_train, X_test = X[train_index], X[test_index]
+#     y_train, y_test = y[train_index], y[test_index]
+
 
 # Fitting the RNN to the Training set
 regressor.fit(X_train2, y_train2, epochs=Nepoch, batch_size=batchSize)
 
 y_pred = regressor.predict(X_test2)
 
+# save model
+regressor.save("./model/lstm.h5")
+
+# plot predicted prices
 plt.plot(y_test2, '.-')
-#plt.figure()
-plt.plot(y_pred, '.-'); plt.grid()
+plt.plot(y_pred, '.-')
+plt.grid()
 
 """
 plt.plot(y_test2,label='orig')
