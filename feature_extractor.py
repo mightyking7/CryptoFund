@@ -63,17 +63,18 @@ def load_extract(cryptocurrency):
     df['Volume'] = df['Volume'].str.replace(',', '').astype('int64')
     df = df.drop(['Date','Market Cap','Open','High','Low'], axis=1)
     df.reset_index(drop=True, inplace=True)
+    df.fillna(method="bfill", inplace=True)
     return df
 
 df_btc = load_extract('bitcoin') #loads bitcoin
-df_btc.fillna(method="bfill", inplace=True)
+
 df_eth = load_extract('ethereum') #loads ethereum
-df_eth.fillna(method="bfill", inplace=True)
+
 df_dash = load_extract('dash') #loads dash
-df_dash.fillna(method="bfill", inplace=True)
+
 df_ltc = load_extract('litecoin') #loads litecoin
-df_ltc.fillna(method="bfill", inplace=True)
+
 df_xmr = load_extract('monero') #loads monero
-df_xmr.fillna(method="bfill", inplace=True)
+
 df_xrp = load_extract('ripple') #loads ripple
-df_xrp.fillna(method="bfill", inplace=True)
+
