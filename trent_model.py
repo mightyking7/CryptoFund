@@ -14,7 +14,7 @@ pred_size = 1 # num days to predict
 Nneurons = 20 # num LSTM neurons per layer
 dropOut = 0.2 # dropout rate
 Nlstm_layers = 1 # num layers between input & output
-Nepoch = 10 # for training
+Nepoch = 5 # for training
 batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
@@ -25,16 +25,14 @@ lossFx = "mean_squared_error" # mae, mean_squared_error
 def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut, loss):
     model = Sequential()
 
+    print("Adding %s LSTM layers" % Nlstm_layers)
     for k in range(Nlstm_layers):
         returnSeq = k!=Nlstm_layers-1 # false for last LSTM layer
         if k==0: # need to define input size in first layer only
-            print("Adding LSTM Layer")
-            print(returnSeq)
             model.add(LSTM(units = Nneurons, return_sequences=returnSeq,
                            activation=activ_fx, input_shape=inShape))
             model.add(Dropout(dropOut))
         else:
-            print("Adding LSTM Layer")
             model.add(LSTM(units = Nneurons, return_sequences=returnSeq,
                            activation=activ_fx))
             model.add(Dropout(dropOut))
@@ -58,59 +56,47 @@ Nfeat = df.shape[1]
 # This is a little cheat, but only slightly
 # We should probably scale the data each day independently
 sc = MinMaxScaler(feature_range = (-1, 1))
-scaled = sc.fit_transform(df)
-#scaled = np.array(df)
-y = scaled[1:,0] # tomorrow's price
-X = scaled[:-1,:] # use today's price to predict tomorrow's
+X = sc.fit_transform(df)
+
+##################################################
+# Create sequential data of size (Ninstances,Ndays,Nfeat)
+N = len(X) - pred_size + 1
+X_seq = np.zeros((N-Ndays, Ndays, Nfeat))
+y_seq = np.zeros((N-Ndays, pred_size))
+yNdx = np.arange(pred_size)
+for k in range(Ndays, N):
+    X_seq[k-Ndays,:,:] = X[k-Ndays:k,:].reshape((1,Ndays,Nfeat)) # includes today's price
+    y_seq[k-Ndays,:] = X[yNdx+k,0] # tomorrow's price
+print(X_seq.shape, y_seq.shape)
+#################################################################3
 
 Ntest = int(np.round(len(X) * test_size))
-Ntrain = len(X) - Ntest
+Ntrain = len(X) - Ntest - Ndays
 print("Ntrain=%s , Ntest=%s" % (Ntrain,Ntest))
-X_train = X[:Ntrain,:]
-y_train = y[:Ntrain]
-X_test  = X[Ntrain:,:]
-y_test  = y[Ntrain:]
+X_train = X_seq[:Ntrain,:]
+y_train = y_seq[:Ntrain,:]
+X_test  = X_seq[Ntrain:,:]
+y_test  = y_seq[Ntrain:,:]
 print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
 
-# Create sequential data of size (Ninstances,Ndays,Nfeat)
-X_train2 = np.zeros((Ntrain-Ndays,Ndays,Nfeat))
-X_test2 = np.zeros((Ntest-Ndays,Ndays,Nfeat))
-y_train2 = y_train[Ndays-1:-1]
-y_test2 = y_test[Ndays-1:-1]
-for k in range(Ndays, Ntrain):
-    X_train2[k-Ndays,:,:] = X_train[k-Ndays:k,:].reshape((1,Ndays,Nfeat))
-    #for colNdx in range(X_train.shape[1]):
-    #    X_train2[k-Ndays,:,colNdx] = X_train[k-Ndays:k,colNdx] / X_train[k-Ndays,colNdx] - 1
-for k in range(Ndays, Ntest):
-    X_test2[k-Ndays,:,:] = X_test[k-Ndays:k,:].reshape((1,Ndays,Nfeat))
-    #for colNdx in range(X_test.shape[1]):
-    #    X_test2[k-Ndays,:,colNdx] = X_test[k-Ndays:k,colNdx] / X_test[k-Ndays,colNdx] - 1
 
-print(X_train2.shape, y_train2.shape)
-print(X_test2.shape, y_test2.shape)
-
-
-inShape = X_train2.shape[1:]
+inShape = X_train.shape[1:]
 regressor = build_model(inShape, pred_size, Nneurons, Nlstm_layers, activation_fx, 
                 dropOut, loss=lossFx)
 
 # Fitting the RNN to the Training set
-regressor.fit(X_train2, y_train2, epochs=Nepoch, batch_size=batchSize)
+regressor.fit(X_train, y_train, epochs=Nepoch, batch_size=batchSize)
 
-y_pred = regressor.predict(X_test2)
+##############################
+plt.figure()
+if (pred_size>1):
+    plt.plot(y_test[:,0], '.-')
+    for k in range(0,X_test.shape[0],pred_size):
+        y_pred = regressor.predict(X_test[k,:,:].reshape((1,-1,Nfeat)))
+        plt.plot(np.arange(pred_size)+k, y_pred.T)
 
-plt.plot(y_test2, '.-')
-#plt.figure()
-plt.plot(y_pred, '.-'); plt.grid()
-
-"""
-plt.plot(y_test2,label='orig')
-plt.plot(y_elu,label='elu')
-plt.plot(y_relu,label='relu')
-plt.plot(y_selu,label='selu')
-plt.plot(y_tanh,label='tanh')
-plt.plot(y_linear,label='linear')
-plt.legend(); plt.grid()
-plt.title("Ndays=10, Nneurons=256, dropout=0.2, Nhidden=2, Nepoch=5, batchSize=4")
-"""
+else:
+    y_pred = regressor.predict(X_test)
+    
+    plt.plot(y_test, '.-'); plt.plot(y_pred, '.-'); plt.grid()
 
