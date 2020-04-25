@@ -39,7 +39,7 @@ def MACD_Bands(df):
     df['LowerGrad'] = df['30 lower band'].copy()  # Just a temporary placeholder to get the shape for modifying values
     df['Crossover'] = translate(df['Crossover'], df['Crossover'].min(), df['Crossover'].max(), df['Close'].min(),
                                 df['Close'].max())
-    df['CrossDiff'] = abs(df['Crossover'] - df['Close'])
+    df['CrossDiff'] = df['Crossover'] - df['Close']
     df['CrossGrad'] = df['Crossover'].copy()  # Just a temporary placeholder to get the shape for modifying values
     for i in range(len(df['30 upper band'])):
         if i == len(df) - 1:
