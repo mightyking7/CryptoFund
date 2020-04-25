@@ -7,13 +7,13 @@ Created on Fri Apr 24 21:01:56 2020
 
 import pandas as pd
 import numpy as np
-import ray
-try:
-    from ray.rllib.agents.agent import get_agent_class
-except ImportError:
-    from ray.rllib.agents.registry import get_agent_class
-from ray.tune import run_experiments
-from ray.tune.registry import register_env
+#import ray
+#try:
+#    from ray.rllib.agents.agent import get_agent_class
+#except ImportError:
+#    from ray.rllib.agents.registry import get_agent_class
+#from ray.tune import run_experiments
+#from ray.tune.registry import register_env
 
 def load_extract(cryptocurrency):
     """
@@ -23,6 +23,7 @@ def load_extract(cryptocurrency):
     """
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
     df = df['Close'].copy()
+    df = df[0:10].copy().transpose()
     return df
 
 
