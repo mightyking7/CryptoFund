@@ -8,9 +8,10 @@ Created on Fri Apr 24 21:01:56 2020
 import pandas as pd
 import numpy as np
 
+
 def load_extract(cryptocurrency):
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
-    df = df.drop(['Unnamed: 0','30 mavg','30 std','26 ema','12 ema','MACD', 'Signal'], axis=1)
+    df = df['Close'].copy()
     return df
 
 df_btc = load_extract('bitcoin')
@@ -19,3 +20,4 @@ df_dash = load_extract('dash')
 df_ltc = load_extract('litecoin')
 df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
+
