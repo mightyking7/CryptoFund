@@ -9,12 +9,12 @@ from keras.layers import Dense, LSTM, Dropout
 #   Data Params
 test_size = 0.33 # contiguous segments for train & test
 Ndays = 10 # number of past days info to predict tomorrow
-pred_size = 1 # num days to predict
+pred_size = 4 # num days to predict
 #   RNN Params
-Nneurons = 20 # num LSTM neurons per layer
+Nneurons = 64 # num LSTM neurons per layer
 dropOut = 0.2 # dropout rate
-Nlstm_layers = 1 # num layers between input & output
-Nepoch = 5 # for training
+Nlstm_layers = 3 # num layers between input & output
+Nepoch = (20,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
@@ -85,23 +85,15 @@ regressor = build_model(inShape, pred_size, Nneurons, Nlstm_layers, activation_f
                 dropOut, loss=lossFx)
 
 # Fitting the RNN to the Training set
-regressor.fit(X_train, y_train, epochs=Nepoch, batch_size=batchSize)
+regressor.fit(X_train, y_train, epochs=Nepoch[0], batch_size=batchSize)
 
-##############################
+# Process test data one day at a time, update model each day
 plt.figure()
-if (pred_size>1):
-    plt.plot(y_test[:,0], '.-')
-    for k in range(0,X_test.shape[0],pred_size):
-        y_pred = regressor.predict(X_test[k,:,:].reshape((1,-1,Nfeat)))
-        plt.plot(np.arange(pred_size)+k, y_pred.T)
-
-else:
-    plt.plot(y_test, '.-'); plt.grid()
-    for k in range(X_test.shape[0]):
-        todays_data = X_test[k,:,:].reshape((1,-1,Nfeat))
-        y_pred = regressor.predict(todays_data)
-        
-        regressor.fit(todays_data, y_test[k], epochs=Nepoch, batch_size=batchSize)
-        
-        plt.plot(k, y_pred, '*')
+plt.plot(y_test[:,0], '.-'); plt.grid()
+for k in range(X_test.shape[0]):
+    todays_data = X_test[k,:,:].reshape((1,-1,Nfeat))
+    y_pred = regressor.predict(todays_data)
+    plt.plot(np.arange(pred_size)+k, y_pred.T, '.-')
+    regressor.fit(todays_data, y_test[k,:].reshape((1,pred_size)), epochs=Nepoch[1], 
+                      batch_size=batchSize)
 
