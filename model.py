@@ -96,7 +96,12 @@ if (pred_size>1):
         plt.plot(np.arange(pred_size)+k, y_pred.T)
 
 else:
-    y_pred = regressor.predict(X_test)
-    
-    plt.plot(y_test, '.-'); plt.plot(y_pred, '.-'); plt.grid()
+    plt.plot(y_test, '.-'); plt.grid()
+    for k in range(X_test.shape[0]):
+        todays_data = X_test[k,:,:].reshape((1,-1,Nfeat))
+        y_pred = regressor.predict(todays_data)
+        
+        regressor.fit(todays_data, y_test[k], epochs=Nepoch, batch_size=batchSize)
+        
+        plt.plot(k, y_pred, '*')
 
