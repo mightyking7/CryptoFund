@@ -7,6 +7,9 @@ Created on Fri Apr 24 21:01:56 2020
 
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 #import ray
 #try:
 #    from ray.rllib.agents.agent import get_agent_class
@@ -24,7 +27,7 @@ def load_extract(cryptocurrency):
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
     df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
     df = df['Close'].copy()
-    df = df[0:10].copy().transpose()
+    df = df[0:10].copy()
     return df
 
 
@@ -36,6 +39,7 @@ df_ltc = load_extract('litecoin')
 df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
 
+trent_output = pd.DataFrame(data=[df_btc, df_eth, df_dash, df_ltc, df_xmr, df_xrp])
 
-print(df_btc)
-
+trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple'] 
+sns.distplot(df_btc, bins=20, kde=False, rug=True)
