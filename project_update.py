@@ -31,7 +31,7 @@ df_btc = df_btc.drop(df_btc.index[0:978])
 #df_eth = df_eth.reindex(index=df_eth.index[::-1])
 #df_eth = df_eth.drop(df_eth.index[0:147])
 
-df_full_btc = df_full_btc.drop(columns= ['Date','btc_market_cap','btc_blocks_size','btc_trade_volume','btc_avg_block_size','btc_n_orphaned_blocks','btc_n_transactions_per_block','btc_median_confirmation_time','btc_cost_per_transaction_percent','btc_n_transactions','btc_n_transactions_excluding_popular','btc_n_transactions_excluding_chains_longer_than_100','btc_output_volume','btc_estimated_transaction_volume'], axis=1)
+df_full_btc = df_full_btc.drop(columns=['Date','btc_market_cap','btc_blocks_size','btc_trade_volume','btc_avg_block_size','btc_n_orphaned_blocks','btc_n_transactions_per_block','btc_median_confirmation_time','btc_cost_per_transaction_percent','btc_n_transactions','btc_n_transactions_excluding_popular','btc_n_transactions_excluding_chains_longer_than_100','btc_output_volume','btc_estimated_transaction_volume'], axis=1)
 corr_full_btc = df_full_btc.select_dtypes(include = ['float64', 'int64']).corr()
 f0, ax0 = plt.subplots(figsize=(14, 5))
 ax0 = sns.heatmap(corr_full_btc[corr_full_btc >= 0.5], cmap='Reds', annot=True, annot_kws={"size": 10})
@@ -51,6 +51,7 @@ def translate(value, leftMin, leftMax, rightMin, rightMax):
 
 #MACD indicator to identify the trend and the Bollinger Bands as a trade trigger, volatility, Crossover Signal
 def MACD_Bands(df):
+    df.fillna(method="bfill", inplace=True)
     df['Volatility'] = (df['High'] - df['Low'])/df['Close']
     df['30 mavg'] = df['Close'].copy().rolling(30).mean()
     df['30 std'] = df['Close'].copy().rolling(30).std()
@@ -61,13 +62,26 @@ def MACD_Bands(df):
     df['MACD'] = (df['12 ema'] - df['26 ema'])
     df['Signal'] = df['MACD'].copy().ewm(span=9).mean()
     df['Crossover'] = df['MACD'] - df['Signal']
-    df['UpperDiff'] = abs(df['30 upper band'] - df['Close'])
-    df['LowerDiff'] = abs(df['30 lower band'] - df['Close'])
+    df['UpperDiff'] = df['30 upper band'] - df['Close']
+    df['UpperGrad'] = df['30 upper band'].copy()  # Just a temporary placeholder to get the shape for modifying values
+    df['LowerDiff'] = df['Close'] - df['30 lower band']
+    df['LowerGrad'] = df['30 lower band'].copy()  # Just a temporary placeholder to get the shape for modifying values
     df['Crossover'] = translate(df['Crossover'], df['Crossover'].min(), df['Crossover'].max(), df['Close'].min(), df['Close'].max())
-    df['CrossDiff'] = df['Crossover'] - df['Close']
+    df['CrossDiff'] = abs(df['Crossover'] - df['Close'])
+    df['CrossGrad'] = df['Crossover'].copy()  # Just a temporary placeholder to get the shape for modifying values
+    for i in range(len(df['30 upper band'])):
+        if i == len(df)-1:
+            df.loc[i, 'UpperGrad'] = df.loc[i-1, 'UpperGrad']
+            df.loc[i, 'LowerGrad'] = df.loc[i-1, 'LowerGrad']
+            df.loc[i, 'CrossGrad'] = df.loc[i-1, 'CrossGrad']
+        else:
+            df.loc[i, 'UpperGrad'] = df['30 upper band'][i + 1] - df['30 upper band'][i]
+            df.loc[i, 'LowerGrad'] = df['30 lower band'][i + 1] - df['30 lower band'][i]
+            df.loc[i, 'CrossGrad'] = df['Crossover'][i + 1] - df['Crossover'][i]
     return df
 
 df_btc_final = MACD_Bands(df_btc)
+df_btc_final.fillna(method="bfill", inplace=True)
 df_btc_final['Volume'] = df_btc['Volume'].str.replace(',', '').astype('int64')
 df_btc_final['Close'] = df_btc['Close'].copy()
 df_btc_final['Market Cap'] = df_btc_final['Market Cap'].str.replace(',', '').astype('int64')
