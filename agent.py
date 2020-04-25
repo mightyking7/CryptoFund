@@ -49,7 +49,7 @@ isaac_input = pd.DataFrame(columns=trent_output.columns)
 isaac_input.loc[0] = np.empty(6)
 
 for coin in list(trent_output.columns):
-    if trent_output[coin].mode()[0] < 10:
-        isaac_input[coin] = trent_output[coin].median()
+    if len(trent_output[coin].mode()) < 10:
+        isaac_input[coin] = trent_output[coin].mode()[0]
     else:
-        isaac_input[coin] = trent_output[coin].mode()
+        isaac_input[coin] = trent_output[coin].median()
