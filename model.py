@@ -100,4 +100,3 @@ else:
     
     plt.plot(y_test, '.-'); plt.plot(y_pred, '.-'); plt.grid()
 
-# TODO load dataset from scratch, extract features, feed into LSTM using CV
