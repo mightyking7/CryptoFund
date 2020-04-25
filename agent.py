@@ -8,9 +8,14 @@ Created on Fri Apr 24 21:01:56 2020
 import pandas as pd
 import numpy as np
 
-df_btc = pd.read_csv('features/bitcoin.csv')
-df_eth = pd.read_csv('features/ethereum.csv')
-df_dash = pd.read_csv('features/dash.csv')
-df_ltc = pd.read_csv('features/litecoin.csv')
-df_xmr = pd.read_csv('features/monero.csv')
-df_xrp = pd.read_csv('features/ripple.csv')
+def load_extract(cryptocurrency):
+    df = pd.read_csv(f'features/{cryptocurrency}.csv')
+    df = df.drop(['Unnamed: 0','30 mavg','30 std','26 ema','12 ema','MACD', 'Signal'], axis=1)
+    return df
+
+df_btc = load_extract('bitcoin')
+df_eth = load_extract('ethereum')
+df_dash = load_extract('dash')
+df_ltc = load_extract('litecoin')
+df_xmr = load_extract('monero')
+df_xrp = load_extract('ripple')
