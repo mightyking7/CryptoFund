@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import defaultdict
 
 #import ray
 #try:
@@ -50,6 +51,11 @@ isaac_input.loc[0] = np.empty(6)
 
 for coin in list(trent_output.columns):
     if len(trent_output[coin].mode()) < 10:
-        isaac_input[coin] = trent_output[coin].mode()[0]
+        modes = list(trent_output[coin].mode())
+        d = defaultdict(float)
+        for mode in modes:
+            d[mode] += 1
+        result = max(d.items(), key=lambda x: x[1])
+        isaac_input[coin] = result[0]
     else:
         isaac_input[coin] = trent_output[coin].median()
