@@ -19,8 +19,8 @@ lossFx = "mean_squared_error" # mae, mean_squared_error
 Ndays = (7,28) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-coin_names = ("bit","dash","eth","lit","mon","rip")
-#coin_names = ["bit"]
+coin_names = ["bit","dash","eth","lit","mon","rip"]
+#coin_names = ["eth","rip"]
 today = 183
 
 # Get model parameters
