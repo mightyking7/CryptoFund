@@ -84,49 +84,11 @@ def load_coins(maxNdays, max_pred_size, coin_names, today):
     data = {}
     for coin in coin_names:
         if coin=="bit": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="dash": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="eth": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="lit": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="mon": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="rip": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
+        if coin=="dash": data[coin] = get_coin("features/dash.csv", maxNdays, max_pred_size, today)
+        if coin=="eth": data[coin] = get_coin("features/ethereum.csv", maxNdays, max_pred_size, today)
+        if coin=="lit": data[coin] = get_coin("features/litecoin.csv", maxNdays, max_pred_size, today)
+        if coin=="mon": data[coin] = get_coin("features/monero.csv", maxNdays, max_pred_size, today)
+        if coin=="rip": data[coin] = get_coin("features/ripple.csv", maxNdays, max_pred_size, today)
     return data
 # EOF #############################################################
 ###################################################################
-
-def load_coins_old(params, coin_names, today):
-    # reference as data[coin][model_num]
-    data = {}
-    for coin in coin_names:
-        data[coin] = []
-        for k in range(len(params["Ndays"])):
-            Ndays = int(params["Ndays"][k])
-            pred_size = int(params["pred_size"][k])
-            if coin=="bit": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-            if coin=="dash": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-            if coin=="eth": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-            if coin=="lit": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-            if coin=="mon": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-            if coin=="rip": data[coin].append(get_coin("features/bitcoin.csv", Ndays, pred_size, today))
-    return data
-# EOF #############################################################
-###################################################################
-
-def proc_coin(dataIn, coin, models, params, day_num):
-    Nmodels = len(models)
-    Nfeat = 18
-    for model_num in range(Nmodels):
-        Npred = int(params["pred_size"][model_num])
-        X_test = dataIn[model_num]["X_test"]
-        y_test = dataIn[model_num]["y_test"]
-        todays_data = X_test[day_num,:,:].reshape((1,-1,Nfeat))
-        #if (model_num==0): plt.plot(y_test[:,0], '.-'); plt.grid()
-        
-        #y_pred[model_num,:Npred] = bank[coin][model_num].predict(todays_data)
-        y_pred = models[model_num].predict(todays_data)
-        #plt.plot(np.arange(Npred)+day_num, y_pred.T, '.-')
-        print("aa")
-        # Use today's data to train model for use tomorrow
-        models[model_num].fit(todays_data, y_test[day_num,:].reshape((1,Npred)),
-                          epochs=1, batch_size=1)
-        print("aaa")
-    return y_pred, models

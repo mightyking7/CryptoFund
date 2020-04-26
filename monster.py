@@ -52,17 +52,6 @@ for coin in coin_names:
         bank[coin][k].fit(X_train, y_train, epochs=Nepoch[0], batch_size=batchSize)
 
 
-###############################################################
-"""
-# Process test data one day at a time, update models each day
-for day_num in range(len(data[coin_names[0]][-1]["y_test"])):
-    for coin in coin_names:
-        #plt.figure()
-        #y_pred = np.zeros((Nmodels, int(np.max(params["pred_size"]))))
-        y_pred, m = proc_coin(data[coin], coin, bank[coin], params, day_num)
-
-"""
-###################################################
 # Process test data one day at a time, update models each day
 Ntest = len(data[coin_names[0]]["y_test"])
 Ncoins = len(coin_names)
