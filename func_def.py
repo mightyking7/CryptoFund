@@ -83,12 +83,12 @@ def load_coins(maxNdays, max_pred_size, coin_names, today):
     # reference as data[coin][model_num]
     data = {}
     for coin in coin_names:
-        if coin=="bit": data[coin] = get_coin("features/bitcoin.csv", maxNdays, max_pred_size, today)
-        if coin=="dash": data[coin] = get_coin("features/dash.csv", maxNdays, max_pred_size, today)
-        if coin=="eth": data[coin] = get_coin("features/ethereum.csv", maxNdays, max_pred_size, today)
-        if coin=="lit": data[coin] = get_coin("features/litecoin.csv", maxNdays, max_pred_size, today)
-        if coin=="mon": data[coin] = get_coin("features/monero.csv", maxNdays, max_pred_size, today)
-        if coin=="rip": data[coin] = get_coin("features/ripple.csv", maxNdays, max_pred_size, today)
+        if coin=="bit": data[coin] = get_coin("test/bitcoin.csv", maxNdays, max_pred_size, today)
+        if coin=="dash": data[coin] = get_coin("test/dash.csv", maxNdays, max_pred_size, today)
+        if coin=="eth": data[coin] = get_coin("test/ethereum.csv", maxNdays, max_pred_size, today)
+        if coin=="lit": data[coin] = get_coin("test/litecoin.csv", maxNdays, max_pred_size, today)
+        if coin=="mon": data[coin] = get_coin("test/monero.csv", maxNdays, max_pred_size, today)
+        if coin=="rip": data[coin] = get_coin("test/ripple.csv", maxNdays, max_pred_size, today)
     return data
 # EOF #############################################################
 ###################################################################
