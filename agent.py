@@ -54,11 +54,12 @@ isaac_input.loc[0] = np.empty(6)
 
 # use predicted prices to execute trades for the month of April
 day = 1
+trading_days = 30
 
 # fund value through out April
-april_value = np.zeros((30,1))
+april_value = np.zeros((trading_days, 1))
 
-while day < 30:
+while day < trading_days:
 
     # predicted price for each coin
     for coin in list(trent_output.columns):
