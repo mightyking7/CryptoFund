@@ -41,6 +41,7 @@ df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
 
 trent_output = pd.DataFrame(data=[df_btc, df_eth, df_dash, df_ltc, df_xmr, df_xrp])
+today_price = np.array([df_btc[0], df_eth[0], df_dash[0], df_ltc[0], df_xmr[0], df_xrp[0]])
 
 trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple'] 
 sns.distplot(df_btc, bins=20, kde=False, rug=True)
@@ -101,6 +102,7 @@ gains[5] = (isaac_input["ripple"].values[0] / df_xrp.iloc[0]) - 1
 
 isaac_input = isaac_input.T
 isaac_input = isaac_input.rename(columns={0: "Pred_Price"})
+isaac_input['CurrentPrice'] = today_price
 isaac_input['Gain'] = gains
 isaac_input['Weights'] = weights
 isaac_input["C_value"] = c_values
@@ -126,7 +128,7 @@ update = (1 - isaac_input.loc[min_gain, "C_value"]) * isaac_input.loc[min_gain, 
 
 isaac_input.loc[min_gain, "Weights"] = update
 
-new_currency = (allocate / isaac_input.loc[max_gain, "Pred_Price"]) * isaac_input.loc[min_gain , "Pred_Price"]
+new_currency = (allocate / isaac_input.loc[max_gain, "CurrentPrice"]) * isaac_input.loc[min_gain , "CurrentPrice"]
 
 isaac_input.loc[max_gain, "Weights"] = new_currency
 
