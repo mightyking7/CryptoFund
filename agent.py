@@ -37,7 +37,7 @@ def load_predict(cryptocurrency):
     :return: dataframe of data
     """
     df = pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
-    df = df.drop(0, axis=0).copy()
+    #df = df.drop(0, axis=0).copy()
     #df = df['Close'].copy()
     #df = df[:-25].copy()
     return df
@@ -74,13 +74,20 @@ for j in range(trade_days):
                                       df_ltc_pred[df_ltc_pred.columns[j]],
                                       df_xmr_pred[df_xmr_pred.columns[j]],
                                       df_xrp_pred[df_xrp_pred.columns[j]]])
+    trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple']
+    trent_output = trent_output.T
 
-    today_price = np.array([df_btc[j], df_eth[j], df_dash[j], df_ltc[j], df_xmr[j], df_xrp[j]])
+    today_price = np.array([df_btc.to_list()[j],
+                            df_eth.to_list()[j],
+                            df_dash.to_list()[j],
+                            df_ltc.to_list()[j],
+                            df_xmr.to_list()[j],
+                            df_xrp.to_list()[j]])
 
     if j == 0:
-        trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple']
+        #trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple']
         #sns.distplot(df_btc, bins=20, kde=False, rug=True)
-        trent_output = trent_output.T
+        #trent_output = trent_output.T
         isaac_input = pd.DataFrame(columns=trent_output.columns)
         isaac_input.loc[0] = np.empty(6)
 
@@ -132,7 +139,8 @@ for j in range(trade_days):
     gains[4] = (isaac_input["monero"].values[0] / df_xmr.iloc[j]) - 1
     gains[5] = (isaac_input["ripple"].values[0] / df_xrp.iloc[j]) - 1
 
-    isaac_input = isaac_input.T
+    if j == 0:
+        isaac_input = isaac_input.T
     isaac_input = isaac_input.rename(columns={0: "Pred_Price"})
     isaac_input['CurrentPrice'] = today_price
     isaac_input['Gain'] = gains
@@ -174,6 +182,6 @@ days = np.arange(trade_days)
 
 plt.title("JKIT performance v.s. BTC April 2020")
 plt.plot(days, april_value, color="blue", label="JKIT Fund")
-plt.plot(days, df_btc.values(), color="yellow", lablel="Bitcoin")
+plt.plot(days, df_btc.values, color="yellow", label="Bitcoin")
 plt.legend()
 plt.savefig("./images/jkit_performance.png")
