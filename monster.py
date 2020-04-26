@@ -4,23 +4,22 @@ from func_def import load_coins, build_model, get_params
 
 # Control Params #######################################
 # RNN Params that vary across models
-Nmodels = 10
-Nneurons =(20,128) # num LSTM neurons per layer
-dropOut = (0,0.5) # dropout rate
-Nlstm_layers = (1,4) # num layers between input & output
+Nmodels = 1
+Nneurons =(64,64) # num LSTM neurons per layer
+dropOut = (0.2,0.2) # dropout rate
+Nlstm_layers = (1,1) # num layers between input & output
 # RNN Params persistent across models
-Nepoch = (10,5) # (test data , daily updates)
+Nepoch = (20,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
 lossFx = "mean_squared_error" # mae, mean_squared_error
-coin_names = ("bit","dash","eth","lit","mon","rip")
 # Data Params
 #test_size = 0.33 # contiguous segments for train & test
-Ndays = (7,30) # number of past days info to predict tomorrow
+Ndays = (10,10) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-#coin_names = ("bit","dash","eth","lit","mon","rip")
+coin_names = ("bit","dash","eth","lit","mon","rip")
 coin_names = ["bit"]
 today = 183
 
@@ -29,7 +28,7 @@ params = get_params(Nmodels, Nneurons, dropOut, Nlstm_layers, Ndays, pred_size)
 
 # Load Data
 #data = load_coins(params, coin_names, today) # list of data, one for each model
-data = load_coins(Ndays[1], pred_size[1], coin_names, today) # data for each coin
+data, sc = load_coins(Ndays[1], pred_size[1], coin_names, today) # data for each coin
 Nfeat = data[coin_names[0]]["X_train"].shape[2]
 
 # Build band of models for each coin
@@ -76,6 +75,24 @@ for coin in coin_names:
                               epochs=Nepoch[1], batch_size=batchSize)
             
     coin_num +=1
-        
-    
+
+
+sc["bit"].inverse_transform(y_pred)
 plt.plot(y_test,'.-'); plt.plot(y_pred[:,0,:,0]); plt.grid()
+
+"""
+bit_sc = MinMaxScaler(feature_range = (-1, 1))
+df = pd.read_csv("testLong/bitcoin.csv")
+y = np.array(df["Close"]).reshape((-1,1))
+sc.fit(y)
+
+ty = sc.inverse_transform(t)
+
+df = pd.read_csv("testLong/dash.csv")
+df = pd.read_csv("testLong/ethereum.csv")
+df = pd.read_csv("testLong/litecoin.csv")
+df = pd.read_csv("testLong/monero.csv")
+df = pd.read_csv("testLong/ripple.csv")
+"""
+
+
