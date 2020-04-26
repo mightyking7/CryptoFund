@@ -28,11 +28,23 @@ def load_extract(cryptocurrency):
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
     df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
     df = df['Close'].copy()
-    df = df[0:10].copy()
+    df = df[:-25].copy()
+    return df
+
+def load_predict(cryptocurrency):
+    """
+    Loads data used for training/trading
+    :param cryptocurrency: crypto to trade
+    :return: dataframe of data
+    """
+    df = pd.read_csv(f'features/{cryptocurrency}.csv')
+    #df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
+    #df = df['Close'].copy()
+    #df = df[:-25].copy()
     return df
 
 
-# load data
+# load actual data
 df_btc = load_extract('bitcoin')
 df_eth = load_extract('ethereum')
 df_dash = load_extract('dash')
@@ -40,26 +52,37 @@ df_ltc = load_extract('litecoin')
 df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
 
-trent_output = pd.DataFrame(data=[df_btc, df_eth, df_dash, df_ltc, df_xmr, df_xrp])
-
-#TODO change this
-today_price = np.array([df_btc[0], df_eth[0], df_dash[0], df_ltc[0], df_xmr[0], df_xrp[0]])
-
-trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple'] 
-sns.distplot(df_btc, bins=20, kde=False, rug=True)
-
-trent_output = trent_output.T
-isaac_input = pd.DataFrame(columns=trent_output.columns)
-isaac_input.loc[0] = np.empty(6)
+# load predict data
+df_btc_pred = load_extract('bitcoin')
+df_eth_pred = load_extract('ethereum')
+df_dash_pred = load_extract('dash')
+df_ltc_pred = load_extract('litecoin')
+df_xmr_pred = load_extract('monero')
+df_xrp_pred = load_extract('ripple')
 
 # use predicted prices to execute trades for the month of April
-day = 1
-trading_days = 30
+#day = 1
 
 # fund value through out April
-april_value = np.zeros((trading_days, 1))
+#april_value = np.zeros((30,1))
 
-while day < trading_days:
+for j in range(len(df_btc)):
+
+    trent_output = pd.DataFrame(data=[df_btc_pred[df_btc_pred.columns[j]],
+                                      df_eth_pred[df_eth_pred.columns[j]],
+                                      df_dash_pred[df_dash_pred.columns[j]],
+                                      df_ltc_pred[df_ltc_pred.columns[j]],
+                                      df_xmr_pred[df_xmr_pred.columns[j]],
+                                      df_xrp_pred[df_xrp_pred.columns[j]]])
+
+    today_price = np.array([df_btc[j], df_eth[j], df_dash[j], df_ltc[j], df_xmr[j], df_xrp[j]])
+
+    if j == 0:
+        trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple']
+        #sns.distplot(df_btc, bins=20, kde=False, rug=True)
+        trent_output = trent_output.T
+        isaac_input = pd.DataFrame(columns=trent_output.columns)
+        isaac_input.loc[0] = np.empty(6)
 
     # predicted price for each coin
     for coin in list(trent_output.columns):
@@ -74,7 +97,6 @@ while day < trading_days:
             isaac_input[coin] = trent_output[coin].mode()[0]
         else:
             isaac_input[coin] = trent_output[coin].median()
-
 
     # confidence intervals
     c_values = np.zeros(6)
@@ -97,19 +119,18 @@ while day < trading_days:
         obs = trent_output[coin].values
 
         # find observations within one percent and ten percent of the predicted price
-        num  = np.count_nonzero(np.logical_and(obs >= one_low, obs <= one_high))
+        num = np.count_nonzero(np.logical_and(obs >= one_low, obs <= one_high))
         den = np.count_nonzero(np.logical_and(obs >= ten_low, obs <= ten_high))
 
         c_values[i] = num / den
 
-
     # compute percent increase
-    gains[0] = (isaac_input["bitcoin"].values[0] / df_btc.iloc[0]) - 1
-    gains[1] = (isaac_input["ethereum"].values[0] / df_eth.iloc[0]) - 1
-    gains[2] = (isaac_input["dash"].values[0] / df_dash.iloc[0]) - 1
-    gains[3] = (isaac_input["litecoin"].values[0] / df_ltc.iloc[0]) - 1
-    gains[4] = (isaac_input["monero"].values[0] / df_xmr.iloc[0]) - 1
-    gains[5] = (isaac_input["ripple"].values[0] / df_xrp.iloc[0]) - 1
+    gains[0] = (isaac_input["bitcoin"].values[0] / df_btc.iloc[j]) - 1
+    gains[1] = (isaac_input["ethereum"].values[0] / df_eth.iloc[j]) - 1
+    gains[2] = (isaac_input["dash"].values[0] / df_dash.iloc[j]) - 1
+    gains[3] = (isaac_input["litecoin"].values[0] / df_ltc.iloc[j]) - 1
+    gains[4] = (isaac_input["monero"].values[0] / df_xmr.iloc[j]) - 1
+    gains[5] = (isaac_input["ripple"].values[0] / df_xrp.iloc[j]) - 1
 
     isaac_input = isaac_input.T
     isaac_input = isaac_input.rename(columns={0: "Pred_Price"})
@@ -146,4 +167,4 @@ while day < trading_days:
     fund_value = isaac_input["Weights"] * isaac_input["Pred_Price"]
     fund_value = fund_value.sum()
 
-    day += 1
+    #day += 1
