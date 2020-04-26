@@ -49,6 +49,7 @@ trent_output = trent_output.T
 isaac_input = pd.DataFrame(columns=trent_output.columns)
 isaac_input.loc[0] = np.empty(6)
 
+# predicted price for each coin
 for coin in list(trent_output.columns):
     if len(trent_output[coin].mode()) < 10:
         modes = list(trent_output[coin].mode())
@@ -61,3 +62,26 @@ for coin in list(trent_output.columns):
         isaac_input[coin] = trent_output[coin].mode()[0]
     else:
         isaac_input[coin] = trent_output[coin].median()
+
+
+# confidence intervals
+c_intervals = np.zeros(10)
+
+coin_names = trent_output.columns.to_list()
+
+# compute confidence for each coin
+for i, coin in enumerate(coin_names):
+
+    # one precent range
+    one_high, one_low = 1.01 * isaac_input[coin].values[0], .99 * isaac_input[coin].values[0]
+
+    # ten percent range
+    ten_high, ten_low = 1.10 * isaac_input[coin].values[0], .90 * isaac_input[coin].values[0]
+
+    obs = trent_output[coin].values
+
+    # find observations within one percent and ten percent of the predicted price
+    num  = np.count_nonzero(np.logical_and(obs >= one_low, obs <= one_high))
+    den = np.count_nonzero(np.logical_and(obs >= ten_low, obs <= ten_high))
+
+    c_intervals[i] = num / den
