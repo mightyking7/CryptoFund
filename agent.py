@@ -5,19 +5,17 @@ Created on Fri Apr 24 21:01:56 2020
 @author: techm
 """
 
+import os
 import pandas as pd
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-#import ray
-#try:
-#    from ray.rllib.agents.agent import get_agent_class
-#except ImportError:
-#    from ray.rllib.agents.registry import get_agent_class
-#from ray.tune import run_experiments
-#from ray.tune.registry import register_env
+imgs = "./images/"
+
+# create folder for plot
+if not os.path.exists(imgs):
+    os.mkdir(imgs)
 
 def load_extract(cryptocurrency):
     """
@@ -36,11 +34,7 @@ def load_predict(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
-    df = df.drop(0, axis=0).copy()
-    #df = df['Close'].copy()
-    #df = df[:-25].copy()
-    return df
+    return pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
 
 
 # load actual data
@@ -65,6 +59,8 @@ trade_days = len(df_btc)
 
 # fund value through out April
 april_value = np.zeros((trade_days, 1))
+
+print(df_btc.index)
 
 for j in range(trade_days):
 
@@ -176,4 +172,4 @@ plt.title("JKIT performance v.s. BTC April 2020")
 plt.plot(days, april_value, color="blue", label="JKIT Fund")
 plt.plot(days, df_btc.values(), color="yellow", lablel="Bitcoin")
 plt.legend()
-plt.savefig("./images/jkit_performance.png")
+plt.savefig(imgs + "/jkit_performance.png")
