@@ -7,8 +7,8 @@ Created on Fri Apr 24 21:01:56 2020
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.pyplot as plt
 from collections import defaultdict
 
 #import ray
@@ -25,10 +25,9 @@ def load_extract(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'features/{cryptocurrency}.csv')
-    df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
+    df = pd.read_csv(f'testLong/{cryptocurrency}.csv')
     df = df['Close'].copy()
-    df = df[:-25].copy()
+    df = df[-25:].copy()
     return df
 
 def load_predict(cryptocurrency):
@@ -37,7 +36,7 @@ def load_predict(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'features/{cryptocurrency}.csv')
+    df = pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
     df = df.drop(0, axis=0).copy()
     #df = df['Close'].copy()
     #df = df[:-25].copy()
@@ -61,12 +60,13 @@ df_xmr_pred = load_predict('monero')
 df_xrp_pred = load_predict('ripple')
 
 # use predicted prices to execute trades for the month of April
-#day = 1
+
+trade_days = len(df_btc)
 
 # fund value through out April
-#april_value = np.zeros((30,1))
+april_value = np.zeros((trade_days, 1))
 
-for j in range(len(df_btc)):
+for j in range(trade_days):
 
     trent_output = pd.DataFrame(data=[df_btc_pred[df_btc_pred.columns[j]],
                                       df_eth_pred[df_eth_pred.columns[j]],
@@ -165,6 +165,15 @@ for j in range(len(df_btc)):
     isaac_input.loc[max_gain, "Weights"] = new_currency
 
     fund_value = isaac_input["Weights"] * isaac_input["Pred_Price"]
-    fund_value = fund_value.sum()
 
-    #day += 1
+    april_value[j] = fund_value.sum()
+
+
+# plot performance of fund versus BTC
+days = np.arange(trade_days)
+
+plt.title("JKIT performance v.s. BTC April 2020")
+plt.plot(days, april_value, color="blue", label="JKIT Fund")
+plt.plot(days, df_btc.values(), color="yellow", lablel="Bitcoin")
+plt.legend()
+plt.savefig("./images/jkit_performance.png")
