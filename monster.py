@@ -76,8 +76,6 @@ for coin in coin_names:
                               epochs=Nepoch[1], batch_size=batchSize)
             
     coin_num +=1
-    
-def proc_out():
-    
+        
     
     

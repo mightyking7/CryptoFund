@@ -52,7 +52,7 @@ def get_coin(fpath, Ndays, pred_size, today):
     
     # Scale data for network efficiency
     sc = MinMaxScaler(feature_range = (-1, 1))
-    y = df["Close"].copy()
+    y = np.array(df["Close"].copy())
     X = sc.fit_transform(df)
     
     # Create sequential data of size (Ninstances,Ndays,Nfeat)
@@ -68,10 +68,10 @@ def get_coin(fpath, Ndays, pred_size, today):
     
     result = {}
     #print("Ntrain=%s , Ntest=%s" % (Ntrain,Ntest))
-    result["X_train"] = X_seq[:today,:]
-    result["y_train"] = y_seq[:today,:]
-    result["X_test"]  = X_seq[today:,:]
-    result["y_test"]  = y_seq[today:,:]
+    result["X_train"] = X_seq[0,:,:].reshape((1,-1,Nfeat))
+    result["y_train"] = y_seq[0,:].reshape((1,1))
+    result["X_test"]  = X_seq[1:,:,:]
+    result["y_test"]  = y_seq[1:,:]
     #print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
     
     return result
