@@ -38,7 +38,7 @@ def load_predict(cryptocurrency):
     :return: dataframe of data
     """
     df = pd.read_csv(f'features/{cryptocurrency}.csv')
-    #df = df.drop(columns=['30 mavg', '30 std', '26 ema', '12 ema', 'MACD', 'Signal'], axis=1)
+    df = df.drop(0, axis=0).copy()
     #df = df['Close'].copy()
     #df = df[:-25].copy()
     return df
@@ -53,12 +53,12 @@ df_xmr = load_extract('monero')
 df_xrp = load_extract('ripple')
 
 # load predict data
-df_btc_pred = load_extract('bitcoin')
-df_eth_pred = load_extract('ethereum')
-df_dash_pred = load_extract('dash')
-df_ltc_pred = load_extract('litecoin')
-df_xmr_pred = load_extract('monero')
-df_xrp_pred = load_extract('ripple')
+df_btc_pred = load_predict('bitcoin')
+df_eth_pred = load_predict('ethereum')
+df_dash_pred = load_predict('dash')
+df_ltc_pred = load_predict('litecoin')
+df_xmr_pred = load_predict('monero')
+df_xrp_pred = load_predict('ripple')
 
 # use predicted prices to execute trades for the month of April
 #day = 1
