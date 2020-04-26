@@ -47,7 +47,7 @@ class TradingEnv(gym.Env):
 
         self.end_date = self.start_date + timedelta(days=self.rollout_len)
 
-        self.action_space = Box(low = - float('inf'), high = float('inf'),
+        self.action_space = Box(low = - 20000, high = float('inf'),
                                      shape = (6, ), dtype = np.float32)
 
         self.observation_space = Box(low = 0, high = float('inf'),
