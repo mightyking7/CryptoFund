@@ -129,3 +129,6 @@ isaac_input.loc[min_gain, "Weights"] = update
 new_currency = (allocate / isaac_input.loc[max_gain, "Pred_Price"]) * isaac_input.loc[min_gain , "Pred_Price"]
 
 isaac_input.loc[max_gain, "Weights"] = new_currency
+
+fund_value = isaac_input["Weights"] * isaac_input["Pred_Price"]
+fund_value = fund_value.sum()
