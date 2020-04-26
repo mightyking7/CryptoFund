@@ -46,12 +46,13 @@ def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut,
 ###################################################################
     
 def get_coin(fpath, Ndays, pred_size, today):
-    df = pd.read_csv(fpath, index_col=0)
+    df = pd.read_csv(fpath)
     Nfeat = df.shape[1]
     #print(Nfeat)
     
     # Scale data for network efficiency
     sc = MinMaxScaler(feature_range = (-1, 1))
+    y = df["Close"].copy()
     X = sc.fit_transform(df)
     
     # Create sequential data of size (Ninstances,Ndays,Nfeat)
@@ -62,7 +63,7 @@ def get_coin(fpath, Ndays, pred_size, today):
     yNdx = np.arange(pred_size)
     for k in range(Ndays, N):
         X_seq[k-Ndays,:,:] = X[k-Ndays:k,:].reshape((1,Ndays,Nfeat)) # includes today's price
-        y_seq[k-Ndays,:] = X[yNdx+k,0] # tomorrow's price
+        y_seq[k-Ndays,:] = y[yNdx+k] # tomorrow's price
     #print(X_seq.shape, y_seq.shape)
     
     result = {}

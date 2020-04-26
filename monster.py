@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from func_def import load_coins, build_model, get_params, proc_coin
+from func_def import load_coins, build_model, get_params
 
 # Control Params #######################################
 # RNN Params that vary across models
@@ -18,7 +18,7 @@ coin_names = ("bit","dash","eth","lit","mon","rip")
 # Data Params
 #test_size = 0.33 # contiguous segments for train & test
 Ndays = (7,30) # number of past days info to predict tomorrow
-pred_size = (1,14) # num days to predict
+pred_size = (1,1) # num days to predict
 #######################################################
 #coin_names = ("bit","dash","eth","lit","mon","rip")
 coin_names = ["bit"]
@@ -76,5 +76,8 @@ for coin in coin_names:
                               epochs=Nepoch[1], batch_size=batchSize)
             
     coin_num +=1
+    
+def proc_out():
+    
     
     
