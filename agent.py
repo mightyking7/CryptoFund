@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import defaultdict
 
 #import ray
 #try:
@@ -43,3 +44,20 @@ trent_output = pd.DataFrame(data=[df_btc, df_eth, df_dash, df_ltc, df_xmr, df_xr
 
 trent_output.index = ['bitcoin', 'ethereum', 'dash', 'litecoin', 'monero', 'ripple'] 
 sns.distplot(df_btc, bins=20, kde=False, rug=True)
+
+trent_output = trent_output.T
+isaac_input = pd.DataFrame(columns=trent_output.columns)
+isaac_input.loc[0] = np.empty(6)
+
+for coin in list(trent_output.columns):
+    if len(trent_output[coin].mode()) < 10:
+        modes = list(trent_output[coin].mode())
+        mean = trent_output[coin].mean()
+        d = defaultdict(float)
+        for mode in modes:
+            distance = abs(mode - mean)
+            d[mode] = distance
+        result = min(d.items(), key=lambda x: x[1])
+        isaac_input[coin] = trent_output[coin].mode()[0]
+    else:
+        isaac_input[coin] = trent_output[coin].median()
