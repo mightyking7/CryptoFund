@@ -22,7 +22,7 @@ pred_size = (1,1) # num days to predict
 #######################################################
 #coin_names = ("bit","dash","eth","lit","mon","rip")
 coin_names = ["bit"]
-today = Ndays[1]
+today = 183
 
 # Get model parameters
 params = get_params(Nmodels, Nneurons, dropOut, Nlstm_layers, Ndays, pred_size)
@@ -78,4 +78,4 @@ for coin in coin_names:
     coin_num +=1
         
     
-    
+plt.plot(y_test,'.-'); plt.plot(y_pred[:,0,:,0]); plt.grid()

@@ -52,8 +52,8 @@ def get_coin(fpath, Ndays, pred_size, today):
     
     # Scale data for network efficiency
     sc = MinMaxScaler(feature_range = (-1, 1))
-    y = np.array(df["Close"].copy())
     X = sc.fit_transform(df)
+    y = X[:,0]
     
     # Create sequential data of size (Ninstances,Ndays,Nfeat)
     N = len(X) - pred_size + 1
@@ -68,10 +68,10 @@ def get_coin(fpath, Ndays, pred_size, today):
     
     result = {}
     #print("Ntrain=%s , Ntest=%s" % (Ntrain,Ntest))
-    result["X_train"] = X_seq[0,:,:].reshape((1,-1,Nfeat))
-    result["y_train"] = y_seq[0,:].reshape((1,1))
-    result["X_test"]  = X_seq[1:,:,:]
-    result["y_test"]  = y_seq[1:,:]
+    result["X_train"] = X_seq[:today-Ndays,:,:]
+    result["y_train"] = y_seq[:today-Ndays,:]
+    result["X_test"]  = X_seq[today-Ndays,:,:]
+    result["y_test"]  = y_seq[today-Ndays,:]
     #print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
     
     return result
@@ -84,7 +84,7 @@ def load_coins(maxNdays, max_pred_size, coin_names, today):
     # reference as data[coin][model_num]
     data = {}
     for coin in coin_names:
-        if coin=="bit": data[coin] = get_coin("test/bitcoin.csv", maxNdays, max_pred_size, today)
+        if coin=="bit": data[coin] = get_coin("testLong/bitcoin.csv", maxNdays, max_pred_size, today)
         if coin=="dash": data[coin] = get_coin("test/dash.csv", maxNdays, max_pred_size, today)
         if coin=="eth": data[coin] = get_coin("test/ethereum.csv", maxNdays, max_pred_size, today)
         if coin=="lit": data[coin] = get_coin("test/litecoin.csv", maxNdays, max_pred_size, today)
