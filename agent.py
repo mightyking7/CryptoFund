@@ -65,9 +65,13 @@ for coin in list(trent_output.columns):
 
 
 # confidence intervals
-c_intervals = np.zeros(10)
+c_values = np.zeros(6)
 
 coin_names = trent_output.columns.to_list()
+
+gains = np.zeros(6)
+
+weights = np.array([1, 0, 0, 0, 0, 0])
 
 # compute confidence for each coin
 for i, coin in enumerate(coin_names):
@@ -84,4 +88,44 @@ for i, coin in enumerate(coin_names):
     num  = np.count_nonzero(np.logical_and(obs >= one_low, obs <= one_high))
     den = np.count_nonzero(np.logical_and(obs >= ten_low, obs <= ten_high))
 
-    c_intervals[i] = num / den
+    c_values[i] = num / den
+
+
+# compute percent increase
+gains[0] = (isaac_input["bitcoin"].values[0] / df_btc.iloc[0]) - 1
+gains[1] = (isaac_input["ethereum"].values[0] / df_eth.iloc[0]) - 1
+gains[2] = (isaac_input["dash"].values[0] / df_dash.iloc[0]) - 1
+gains[3] = (isaac_input["litecoin"].values[0] / df_ltc.iloc[0]) - 1
+gains[4] = (isaac_input["monero"].values[0] / df_xmr.iloc[0]) - 1
+gains[5] = (isaac_input["ripple"].values[0] / df_xrp.iloc[0]) - 1
+
+isaac_input = isaac_input.T
+isaac_input = isaac_input.rename(columns={0: "Pred_Price"})
+isaac_input['Gain'] = gains
+isaac_input['Weights'] = weights
+isaac_input["C_value"] = c_values
+
+
+max_gain = isaac_input.index[isaac_input['Gain'] == isaac_input['Gain'].max()].to_list()[0]
+
+losses = sorted(isaac_input["Gain"].to_list())
+
+# trade from currency with least gain to currency with most gain
+
+for loss in losses:
+
+    index = isaac_input.index[isaac_input['Gain'] == loss].to_list()
+
+    if isaac_input.at[index[0], "Weights"] != 0 and isaac_input.loc[index[0], "Gain"] < 0 :
+        min_gain = index[0]
+        break
+
+allocate = isaac_input.loc[min_gain, "Weights"] * isaac_input.loc[min_gain, "C_value"]
+
+update = (1 - isaac_input.loc[min_gain, "C_value"]) * isaac_input.loc[min_gain, "Weights"]
+
+isaac_input.loc[min_gain, "Weights"] = update
+
+new_currency = (allocate / isaac_input.loc[max_gain, "Pred_Price"]) * isaac_input.loc[min_gain , "Pred_Price"]
+
+isaac_input.loc[max_gain, "Weights"] = new_currency
