@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from func_def import load_coins, build_model, get_params
 
 # Control Params #######################################
@@ -20,7 +21,7 @@ Ndays = (7,28) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
 coin_names = ["bit","dash","eth","lit","mon","rip"]
-#coin_names = ["eth","rip"]
+#coin_names = ["lit","mon","rip"]
 today = 183
 
 # Get model parameters
@@ -80,10 +81,13 @@ y = 0*y_pred # init
 coin_num = 0
 for coin in coin_names:
     y[:,0,:,coin_num] = sc[coin].inverse_transform(y_pred[:,0,:,coin_num].reshape((-1,Nmodels)))
+    
+    yOut = pd.DataFrame(data=y[:,0,:,coin_num].T)
+    yOut.to_csv("trentOutput/"+coin+".csv", index=False)
+    
     coin_num += 1
 
 #plt.plot(sc["bit"].inverse_transform(y_test),'.-'); plt.plot(y[:,0,:,0]); plt.grid()
-
 
 
 
