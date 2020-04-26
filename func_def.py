@@ -70,8 +70,8 @@ def get_coin(fpath, Ndays, pred_size, today):
     #print("Ntrain=%s , Ntest=%s" % (Ntrain,Ntest))
     result["X_train"] = X_seq[:today-Ndays,:,:]
     result["y_train"] = y_seq[:today-Ndays,:]
-    result["X_test"]  = X_seq[today-Ndays,:,:]
-    result["y_test"]  = y_seq[today-Ndays,:]
+    result["X_test"]  = X_seq[today-Ndays:,:,:]
+    result["y_test"]  = y_seq[today-Ndays:,:]
     #print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
     
     return result
