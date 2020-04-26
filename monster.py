@@ -4,10 +4,10 @@ from func_def import load_coins, build_model, get_params
 
 # Control Params #######################################
 # RNN Params that vary across models
-Nmodels = 1
-Nneurons =(64,64) # num LSTM neurons per layer
-dropOut = (0.2,0.2) # dropout rate
-Nlstm_layers = (1,1) # num layers between input & output
+Nmodels = 10
+Nneurons =(20,128) # num LSTM neurons per layer
+dropOut = (0,0.4) # dropout rate
+Nlstm_layers = (1,3) # num layers between input & output
 # RNN Params persistent across models
 Nepoch = (20,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
@@ -16,10 +16,10 @@ activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
 lossFx = "mean_squared_error" # mae, mean_squared_error
 # Data Params
 #test_size = 0.33 # contiguous segments for train & test
-Ndays = (10,10) # number of past days info to predict tomorrow
+Ndays = (7,20) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-coin_names = ("bit","dash","eth","lit","mon","rip")
+#coin_names = ("bit","dash","eth","lit","mon","rip")
 coin_names = ["bit"]
 today = 183
 
@@ -74,10 +74,15 @@ for coin in coin_names:
             bank[coin][model_num].fit(todays_data, y_test[day_num,:].reshape((1,n_pred)),
                               epochs=Nepoch[1], batch_size=batchSize)
             
-    coin_num +=1
+    coin_num += 1
 
+y = 0*y_pred # init
+coin_num = 0
+for coin in coin_names:
+    y[:,0,:,coin_num] = sc["bit"].inverse_transform(y_pred[:,0,:,coin_num].reshape((-1,Nmodels)))
+    coin_num += 1
+ 
 
-sc["bit"].inverse_transform(y_pred)
 plt.plot(y_test,'.-'); plt.plot(y_pred[:,0,:,0]); plt.grid()
 
 """

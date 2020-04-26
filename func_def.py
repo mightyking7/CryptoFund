@@ -88,12 +88,21 @@ def load_coins(maxNdays, max_pred_size, coin_names, today):
         if coin=="bit":
             data[coin] = get_coin("testLong/bitcoin.csv", maxNdays, max_pred_size, today)
             df = pd.read_csv("testLong/bitcoin.csv")
-        
-        if coin=="dash": data[coin] = get_coin("testLong/dash.csv", maxNdays, max_pred_size, today)
-        if coin=="eth": data[coin] = get_coin("testLong/ethereum.csv", maxNdays, max_pred_size, today)
-        if coin=="lit": data[coin] = get_coin("testLong/litecoin.csv", maxNdays, max_pred_size, today)
-        if coin=="mon": data[coin] = get_coin("testLong/monero.csv", maxNdays, max_pred_size, today)
-        if coin=="rip": data[coin] = get_coin("testLong/ripple.csv", maxNdays, max_pred_size, today)
+        if coin=="dash":
+            data[coin] = get_coin("testLong/dash.csv", maxNdays, max_pred_size, today)
+            df = pd.read_csv("testLong/dash.csv")
+        if coin=="eth":
+            data[coin] = get_coin("testLong/ethereum.csv", maxNdays, max_pred_size, today)
+            df = pd.read_csv("testLong/ethereum.csv")
+        if coin=="lit":
+            data[coin] = get_coin("testLong/litecoin.csv", maxNdays, max_pred_size, today)
+            df = pd.read_csv("testLong/litecoin.csv")
+        if coin=="mon":
+            data[coin] = get_coin("testLong/monero.csv", maxNdays, max_pred_size, today)
+            df = pd.read_csv("testLong/monero.csv")
+        if coin=="rip":
+            data[coin] = get_coin("testLong/ripple.csv", maxNdays, max_pred_size, today)
+            df = pd.read_csv("testLong/ripple.csv")
         
         sc[coin] = MinMaxScaler(feature_range = (-1, 1))
         y = np.array(df["Close"]).reshape((-1,1))
