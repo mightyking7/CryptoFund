@@ -7,8 +7,8 @@ from func_def import load_coins, build_model, get_params
 # RNN Params that vary across models
 Nmodels = 10
 Nneurons =(32,128) # num LSTM neurons per layer
-dropOut = (0,0.5) # dropout rate
-Nlstm_layers = (1,4) # num layers between input & output
+dropOut = (0,0.0) # dropout rate
+Nlstm_layers = (1,3) # num layers between input & output
 # RNN Params persistent across models
 Nepoch = (20,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
@@ -17,11 +17,12 @@ activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
 lossFx = "mean_squared_error" # mae, mean_squared_error
 # Data Params
 #test_size = 0.33 # contiguous segments for train & test
-Ndays = (7,28) # number of past days info to predict tomorrow
+Ndays = (7,14) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-coin_names = ["bit","dash","eth","lit","mon","rip"]
+#coin_names = ["bit","dash","eth","lit","mon","rip"]
 #coin_names = ["lit","mon","rip"]
+coin_names = ["rip"]
 today = 183
 
 # Get model parameters
@@ -83,7 +84,7 @@ for coin in coin_names:
     y[:,0,:,coin_num] = sc[coin].inverse_transform(y_pred[:,0,:,coin_num].reshape((-1,Nmodels)))
     
     yOut = pd.DataFrame(data=y[:,0,:,coin_num].T)
-    yOut.to_csv("trentOutput/"+coin+".csv", index=False)
+    yOut.to_csv("../newOutputData/"+coin+".csv", index=False)
     
     coin_num += 1
 
