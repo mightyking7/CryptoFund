@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
+import matplotlib.pyplot as plt
 
 def get_params(Nmodels, Nneurons, dropOut, Nlstm_layers, Ndays, pred_size):
     params = {}
@@ -53,7 +54,10 @@ def get_coin(fpath, Ndays, pred_size, today):
     # Scale data for network efficiency
     sc = MinMaxScaler(feature_range = (-1, 1))
     X = sc.fit_transform(df)
-    y = X[:,0]
+    
+    #tmp = np.diff(df["Close"])
+    #tmp = abs(tmp)/np.max(abs(tmp)) * np.sign(tmp)
+    #X[1:,0] = tmp; X[0,0] = X[1,0]
     
     # Create sequential data of size (Ninstances,Ndays,Nfeat)
     N = len(X) - pred_size + 1
@@ -63,7 +67,7 @@ def get_coin(fpath, Ndays, pred_size, today):
     yNdx = np.arange(pred_size)
     for k in range(Ndays, N):
         X_seq[k-Ndays,:,:] = X[k-Ndays:k,:].reshape((1,Ndays,Nfeat)) # includes today's price
-        y_seq[k-Ndays,:] = y[yNdx+k] # tomorrow's price
+        y_seq[k-Ndays,:] = X[yNdx+k,0] # tomorrow's price
     #print(X_seq.shape, y_seq.shape)
     
     result = {}
@@ -92,6 +96,7 @@ def load_coins(maxNdays, max_pred_size, coin_names, today):
             data[coin] = get_coin("testLong/dash.csv", maxNdays, max_pred_size, today)
             df = pd.read_csv("testLong/dash.csv")
         elif coin=="eth":
+            print("Loading ethereum")
             data[coin] = get_coin("testLong/ethereum.csv", maxNdays, max_pred_size, today)
             df = pd.read_csv("testLong/ethereum.csv")
         elif coin=="lit":

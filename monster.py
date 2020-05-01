@@ -1,23 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.metrics import mean_squared_error
 from func_def import load_coins, build_model, get_params
 
 # Control Params #######################################
 # RNN Params that vary across models
 Nmodels = 10
-Nneurons =(32,128) # num LSTM neurons per layer
-dropOut = (0,0.0) # dropout rate
-Nlstm_layers = (1,3) # num layers between input & output
+Nneurons =(50,100) # num LSTM neurons per layer
+dropOut = (0,0.1) # dropout rate
+Nlstm_layers = (1,2) # num layers between input & output
 # RNN Params persistent across models
-Nepoch = (20,5) # (test data , daily updates)
+Nepoch = (100,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
 lossFx = "mean_squared_error" # mae, mean_squared_error
 # Data Params
 #test_size = 0.33 # contiguous segments for train & test
-Ndays = (7,14) # number of past days info to predict tomorrow
+Ndays = (7,21) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
 #coin_names = ["bit","dash","eth","lit","mon","rip"]
@@ -45,6 +46,7 @@ for coin in coin_names:
 # Train the bank on training data
 for coin in coin_names:
     for k in range(Nmodels):
+        print("Training model %s of %s" % (k+1,Nmodels))
         n_days = int(params["Ndays"][k])
         n_pred = int(params["pred_size"][k])
         X_train = data[coin]["X_train"][:,-n_days:,:]
@@ -88,7 +90,14 @@ for coin in coin_names:
     
     coin_num += 1
 
-#plt.plot(sc["bit"].inverse_transform(y_test),'.-'); plt.plot(y[:,0,:,0]); plt.grid()
-
+yNdx = np.arange(pred_size[1])
+plt.subplot(2,1,1)
+plt.plot(y_test[:,0],'.-'); plt.grid()
+#mu = np.zeros((Ntest,4)); sigma = mu
+for k in range(0,Ntest):
+    #plt.plot(k+yNdx , y_pred[k,:,0,0],'.-')
+    mu = np.mean(y_pred[k,:,:,0],axis=1)
+    sigma = np.std(y_pred[k,:,:,0],axis=1)
+    plt.errorbar(k+yNdx , mu , sigma)
 
 
