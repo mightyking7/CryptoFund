@@ -11,7 +11,7 @@ import pandas as pd
 from scipy import stats
 
 def get_data():
-    df = pd.read_csv("../newOutputData/bitcoin.csv")
+    df = pd.read_csv("newOutputData/bitcoin.csv")
     N = df.shape[1]
     true_price = np.zeros((N+1,6))
     mu = np.zeros((N,6))
@@ -21,7 +21,7 @@ def get_data():
         df = pd.read_csv("testLong/"+name+".csv")
         true_price[:,n] = df["Close"][-N-1:]
         
-        df = pd.read_csv("../newOutputData/"+name+".csv")
+        df = pd.read_csv("newOutputData/"+name+".csv")
         mu[:,n] = np.mean(df, axis=0)
         sigma[:,n] = np.std(df, axis=0)
         n+=1
