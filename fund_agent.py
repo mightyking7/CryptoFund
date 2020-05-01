@@ -56,7 +56,7 @@ acct_balance = true_price[0,0] + np.zeros(len(est_chg))
 
 for day in range(len(est_chg)):
     W = np.zeros((6,1)) # distribution of investments
-    idx = (P_loose[day,:] < risk_thold) & (est_chg[day,:] > gain_thold)
+    idx = (P_lose[day,:] < risk_thold) & (est_chg[day,:] > gain_thold)
     if any(idx):
         W[idx,0] = calc_dist(est_chg[day,idx], est_sig[day,idx])
         day_chg = np.matmul(W.T, true_chg[day,:]) + 1
