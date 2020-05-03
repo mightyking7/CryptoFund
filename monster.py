@@ -21,9 +21,9 @@ lossFx = "mean_squared_error" # mae, mean_squared_error
 Ndays = (7,21) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-coin_names = ["bitcoin","dash","ethereum","litecoin","monero","ripple"]
+#coin_names = ["bitcoin","dash","ethereum","litecoin","monero","ripple"]
 #coin_names = ["lit","mon","rip"]
-#coin_names = ["bitcoin"]
+coin_names = ["bitcoin"]
 tomorrow = 183
 batchSize = Ndays[0] # num samples used at a time to train
 
@@ -75,7 +75,7 @@ for coin in coin_names:
             if day_num>0:
                 # Use yesterday's data to train model for use today
                 y_test_sc = 2*(y_test[day_num-1]-sc_inv[day_num,1])/sc_inv[day_num,0] - 1
-                regressor.fit(todays_data, y_test_sc.reshape((1,pred_size)),
+                bank[coin][model_num].fit(todays_data, y_test_sc.reshape((1,n_pred)),
                           epochs=Nepoch[1], batch_size=1)
     
             # just before midnight
