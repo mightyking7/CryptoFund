@@ -8,19 +8,20 @@ from keras.layers import Dense, LSTM, Dropout
 
 # Control Params #######################################
 #   Data Params
-Ndays = 14 # number of past days info to predict tomorrow
+Ndays = 21 # number of past days info to predict tomorrow
 pred_size = 1 # num days to predict
 #   RNN Params
 Nneurons = 64 # num LSTM neurons per layer
-dropOut = 0.0 # dropout rate
-Nlstm_layers = 1 # num layers between input & output
-Nepoch = (20,5) # (test data , daily updates)
+dropOut = 0.2 # dropout rate
+Nlstm_layers = 2 # num layers between input & output
+Nepoch = (30,5) # (test data , daily updates)
 batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
 lossFx = "mean_squared_error" # mae, mean_squared_error
 #########################################################
-fpath = "testLong/ethereum.csv"
+fpath = "input_12mo/bitcoin.csv"
+tomorrow = 183
 
 def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut, loss):
     model = Sequential()
@@ -45,66 +46,76 @@ def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut,
 # EOF ########################################
 
 df = pd.read_csv(fpath)
-nfeat = df.shape[1]
-
-#print(df.isna().sum())
-df.fillna(method="bfill", inplace=True)
-#print(df.isna().sum())
 Nfeat = df.shape[1]
 
-# This is a little cheat, but only slightly
-# We should probably scale the data each day independently
+# Sequence data
+# Scale data for network efficiency
 sc = MinMaxScaler(feature_range = (-1, 1))
-X = sc.fit_transform(df)
-
-##################################################
+X = sc.fit_transform(df.iloc[:tomorrow,:])
 # Create sequential data of size (Ninstances,Ndays,Nfeat)
-N = len(X) - pred_size + 1
+N = tomorrow - pred_size + 1
 X_seq = np.zeros((N-Ndays, Ndays, Nfeat))
 y_seq = np.zeros((N-Ndays, pred_size))
 yNdx = np.arange(pred_size)
 for k in range(Ndays, N):
     X_seq[k-Ndays,:,:] = X[k-Ndays:k,:].reshape((1,Ndays,Nfeat)) # includes today's price
     y_seq[k-Ndays,:] = X[yNdx+k,0] # tomorrow's price
-print(X_seq.shape, y_seq.shape)
+X_train = X_seq
+y_train = y_seq
+# TEST ################################################
+NN = len(df) - k
+X_teq = np.zeros((NN-1, Ndays, Nfeat))
+y_teq = np.zeros((NN-1, pred_size))
+sc_inv = np.zeros((NN-1, 2))
+n = 0
+while (tomorrow<len(df)):
+    Xt = sc.fit_transform(df.iloc[:tomorrow,:]) # doesn't scale into the future
+    X_teq[n,:,:] = Xt[-Ndays:,:].reshape((1,Ndays,Nfeat)) # includes today's price
+    y_teq[n,:] = df["Close"][tomorrow] # tomorrow's unscaled price
+    sc_inv[n,:] = [sc.data_range_[0] , sc.data_min_[0]]
+    tomorrow += 1
+    n += 1
+X_test = X_teq
+y_test = y_teq
+sc_inv = sc_inv
 #################################################################3
-
-#Ntest = int(np.round(len(X) * test_size))
-#Ntrain = len(X) - Ntest - Ndays
-#print("Ntrain=%s , Ntest=%s" % (Ntrain,Ntest))
-Ntest = 25
-X_train = X_seq[:-Ntest,:,:]
-y_train = y_seq[:-Ntest,:]
-X_test  = X_seq[-Ntest:,:,:]
-y_test  = y_seq[-Ntest:,:]
-print(X_train.shape,y_train.shape,X_test.shape,y_test.shape)
-
 
 inShape = X_train.shape[1:]
 regressor = build_model(inShape, pred_size, Nneurons, Nlstm_layers, activation_fx, 
                 dropOut, loss=lossFx)
 
 # Fitting the RNN to the Training set
-regressor.fit(X_train, y_train, epochs=Nepoch[0], batch_size=batchSize)
+train_hist = regressor.fit(X_train, y_train, epochs=Nepoch[0], batch_size=batchSize)
 y0 = regressor.predict(X_test)
 
-# Process test data one day at a time, update model each day
-#plt.figure()
-#plt.plot(y_test[:,0], '.-'); plt.grid()
-error = np.zeros((X_test.shape[0],2))
-y_pred = np.zeros((Ntest,pred_size))
-for k in range(X_test.shape[0]):
-    todays_data = X_test[k,:,:].reshape((1,-1,Nfeat))
-    y_pred[k,:] = regressor.predict(todays_data)
-    #plt.plot(np.arange(pred_size)+k, y_pred.T, '.-')
-    
-    #error[k,0] = mean_squared_error(y_test[k,:], y0[k,:])
-    #error[k,1] = mean_squared_error(y_test[k,:], y_pred.T)
-    regressor.fit(todays_data, y_test[k,:].reshape((1,pred_size)), epochs=Nepoch[1], batch_size=batchSize)
+# Plot training past
+#plt.plot(y_train,'.-')
 
-#y1 = regressor.predict(X_test)
-#y8 = regressor.predict(X_test)
-#y50 = regressor.predict(X_test)
+Ntest = len(y_test)
+y_pred = np.zeros((Ntest, pred_size))
+sc = MinMaxScaler(feature_range = (-1, 1))
+for day_num in range(Ntest):
+    if day_num>0:
+        # Use yesterday's data to train model for use today
+        y_test_sc = 2*(y_test[day_num-1]-sc_inv[day_num,1])/sc_inv[day_num,0] - 1
+        regressor.fit(todays_data, y_test_sc.reshape((1,pred_size)),
+                          epochs=Nepoch[1], batch_size=batchSize)
+    
+    # just before midnight
+    todays_data = X_test[day_num,:,:].reshape((1,-1,Nfeat))
+    
+    #plt.plot(len(y_train)+day_num-1 , todays_data[0,-1,0],'b*')
+    #plt.xlim((len(y_train)-5 , len(y_train)+1))
+    
+    y_pred_sc = regressor.predict(todays_data)
+    y_pred[day_num,:] = (y_pred_sc+1)*sc_inv[day_num,0]/2 + sc_inv[day_num,1]
+    
+    #plt.plot(len(y_train)+day_num , y_pred_sc, 'r*')    
+
+
+plt.plot(y_test,'.-'); plt.plot(y_pred,'.-'); plt.grid()
+a = (np.diff(y_test,axis=0)>0) & (np.diff(y_pred,axis=0)>0)
+print(a.sum()/len(a))
 
 """
 sc = MinMaxScaler(feature_range = (-1, 1))
