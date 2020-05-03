@@ -64,12 +64,12 @@ sc = MinMaxScaler(feature_range = (-1, 1))
 coin_num = 0
 for coin in coin_names:
     #plt.figure()
-    X_test = data[coin]["X_test"][:,-n_days:,:]
-    y_test = data[coin]["y_test"][:,:n_pred]
     sc_inv = data[coin]["sc_inv"]
     for model_num in range(Nmodels):
         n_days = int(params["Ndays"][model_num])
         n_pred = int(params["pred_size"][model_num])
+        X_test = data[coin]["X_test"][:,-n_days:,:]
+        y_test = data[coin]["y_test"][:,:n_pred]
         #if (model_num==0): plt.plot(y_test[:,0], '.-'); plt.grid()
         for day_num in range(Ntest):
             if day_num>0:
