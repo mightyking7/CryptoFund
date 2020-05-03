@@ -13,7 +13,6 @@ dropOut = (0,0.3) # dropout rate
 Nlstm_layers = (2,8) # num layers between input & output
 # RNN Params persistent across models
 Nepoch = (100,5) # (test data , daily updates)
-batchSize = 1 # num samples used at a time to train
 activation_fx = "tanh" # eg. tanh, elu, relu, selu, linear
                          # don't work well with scaling: sigmoid, exponential
 lossFx = "mean_squared_error" # mae, mean_squared_error
@@ -22,10 +21,11 @@ lossFx = "mean_squared_error" # mae, mean_squared_error
 Ndays = (7,21) # number of past days info to predict tomorrow
 pred_size = (1,1) # num days to predict
 #######################################################
-#coin_names = ["bit","dash","eth","lit","mon","rip"]
+coin_names = ["bitcoin","dash","ethereum","litecoin","monero","ripple"]
 #coin_names = ["lit","mon","rip"]
-coin_names = ["bitcoin"]
+#coin_names = ["bitcoin"]
 tomorrow = 183
+batchSize = Ndays[0] # num samples used at a time to train
 
 # Get model parameters
 params = get_params(Nmodels, Nneurons, dropOut, Nlstm_layers, Ndays, pred_size)
@@ -72,14 +72,17 @@ for coin in coin_names:
         n_pred = int(params["pred_size"][model_num])
         #if (model_num==0): plt.plot(y_test[:,0], '.-'); plt.grid()
         for day_num in range(Ntest):
+            if day_num>0:
+                # Use yesterday's data to train model for use today
+                y_test_sc = 2*(y_test[day_num-1]-sc_inv[day_num,1])/sc_inv[day_num,0] - 1
+                regressor.fit(todays_data, y_test_sc.reshape((1,pred_size)),
+                          epochs=Nepoch[1], batch_size=1)
+    
+            # just before midnight
             todays_data = X_test[day_num,:,:].reshape((1,-1,Nfeat))
             y_pred_sc = bank[coin][model_num].predict(todays_data)
             y_pred[day_num,:n_pred,model_num,coin_num] = (y_pred_sc+1)*sc_inv[day_num,0]/2 + sc_inv[day_num,1]
             
-            # Use today's data to train model for use tomorrow
-            y_test_sc = 2*(y_test[day_num]-sc_inv[day_num,1])/sc_inv[day_num,0] - 1
-            bank[coin][model_num].fit(todays_data, y_test_sc.reshape((1,n_pred)),
-                              epochs=Nepoch[1], batch_size=batchSize)
     coin_num += 1
 
 

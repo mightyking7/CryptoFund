@@ -8,7 +8,7 @@ from keras.layers import Dense, LSTM, Dropout
 
 # Control Params #######################################
 #   Data Params
-Ndays = 21 # number of past days info to predict tomorrow
+Ndays = 7 # number of past days info to predict tomorrow
 pred_size = 1 # num days to predict
 #   RNN Params
 Nneurons = 64 # num LSTM neurons per layer
@@ -32,6 +32,7 @@ def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut,
         if k==0: # need to define input size in first layer only
             model.add(LSTM(units = Nneurons, return_sequences=returnSeq,
                            activation=activ_fx, input_shape=inShape))
+                           #stateful=True, batch_input_shape=(batchSize, 14, 12)))
             model.add(Dropout(dropOut))
         else:
             model.add(LSTM(units = Nneurons, return_sequences=returnSeq,
@@ -86,7 +87,7 @@ regressor = build_model(inShape, pred_size, Nneurons, Nlstm_layers, activation_f
 
 # Fitting the RNN to the Training set
 train_hist = regressor.fit(X_train, y_train, epochs=Nepoch[0], batch_size=batchSize)
-y0 = regressor.predict(X_test)
+y0 = regressor.predict(X_test[:182,:])
 
 # Plot training past
 #plt.plot(y_train,'.-')
@@ -99,7 +100,7 @@ for day_num in range(Ntest):
         # Use yesterday's data to train model for use today
         y_test_sc = 2*(y_test[day_num-1]-sc_inv[day_num,1])/sc_inv[day_num,0] - 1
         regressor.fit(todays_data, y_test_sc.reshape((1,pred_size)),
-                          epochs=Nepoch[1], batch_size=batchSize)
+                          epochs=Nepoch[1], batch_size=1)
     
     # just before midnight
     todays_data = X_test[day_num,:,:].reshape((1,-1,Nfeat))
