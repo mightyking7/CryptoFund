@@ -10,7 +10,6 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
-import matplotlib.pyplot as plt
 
 def get_params(Nmodels, Nneurons, dropOut, Nlstm_layers, Ndays, pred_size):
     params = {}
@@ -46,7 +45,7 @@ def build_model(inShape, output_size, Nneurons, Nlstm_layers, activ_fx, dropOut,
 # EOF #############################################################
 ###################################################################
     
-def get_coin(fpath, Ndays, pred_size, today):
+def get_coin_orig(fpath, Ndays, pred_size, today):
     df = pd.read_csv(fpath)
     Nfeat = df.shape[1]
     #print(Nfeat)
@@ -81,37 +80,51 @@ def get_coin(fpath, Ndays, pred_size, today):
     return result
     
 # EOF #############################################################
+
+def get_coin(fpath, coin, Ndays, pred_size, tomorrow):
+    df = pd.read_csv(fpath+coin+".csv")
+    Nfeat = df.shape[1]
+    # Scale data for network efficiency
+    sc = MinMaxScaler(feature_range = (-1, 1))
+    X = sc.fit_transform(df.iloc[:tomorrow,:])
+    # Create sequential data of size (Ninstances,Ndays,Nfeat)
+    N = tomorrow - pred_size + 1
+    X_seq = np.zeros((N-Ndays, Ndays, Nfeat))
+    y_seq = np.zeros((N-Ndays, pred_size))
+    yNdx = np.arange(pred_size)
+    for k in range(Ndays, N):
+        X_seq[k-Ndays,:,:] = X[k-Ndays:k,:].reshape((1,Ndays,Nfeat)) # includes today's price
+        y_seq[k-Ndays,:] = X[yNdx+k,0] # tomorrow's price
+    result = {}
+    result["X_train"] = X_seq
+    result["y_train"] = y_seq
+    # TEST ################################################
+    NN = len(df) - k
+    X_teq = np.zeros((NN-1, Ndays, Nfeat))
+    y_teq = np.zeros((NN-1, pred_size))
+    sc_inv = np.zeros((NN-1, 2))
+    n = 0
+    while (tomorrow<len(df)):
+        Xt = sc.fit_transform(df.iloc[:tomorrow,:]) # doesn't scale into the future
+        X_teq[n,:,:] = Xt[-Ndays:,:].reshape((1,Ndays,Nfeat)) # includes today's price
+        y_teq[n,:] = df["Close"][tomorrow] # tomorrow's unscaled price
+        sc_inv[n,:] = [sc.data_range_[0] , sc.data_min_[0]]
+        tomorrow += 1
+        n += 1
+    result["X_test"]  = X_teq
+    result["y_test"]  = y_teq
+    result["sc_inv"]  = sc_inv
+    return result
+
 ###################################################################
     
 
-def load_coins(maxNdays, max_pred_size, coin_names, today):
+def load_coins(maxNdays, max_pred_size, coin_names, tomorrow):
     # reference as data[coin][model_num]
     data = {}
-    sc = {}
     for coin in coin_names:
-        if coin=="bit":
-            data[coin] = get_coin("testLong/bitcoin.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/bitcoin.csv")
-        elif coin=="dash":
-            data[coin] = get_coin("testLong/dash.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/dash.csv")
-        elif coin=="eth":
-            print("Loading ethereum")
-            data[coin] = get_coin("testLong/ethereum.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/ethereum.csv")
-        elif coin=="lit":
-            data[coin] = get_coin("testLong/litecoin.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/litecoin.csv")
-        elif coin=="mon":
-            data[coin] = get_coin("testLong/monero.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/monero.csv")
-        elif coin=="rip":
-            data[coin] = get_coin("testLong/ripple.csv", maxNdays, max_pred_size, today)
-            df = pd.read_csv("testLong/ripple.csv")
+        data[coin] = get_coin("input_12mo/", coin, maxNdays, max_pred_size, tomorrow)
         
-        sc[coin] = MinMaxScaler(feature_range = (-1, 1))
-        y = np.array(df["Close"]).reshape((-1,1))
-        sc[coin].fit(y)
-    return data, sc
+    return data
 # EOF #############################################################
 ###################################################################
