@@ -11,7 +11,7 @@ import pandas as pd
 from scipy import stats
 
 def get_data():
-    df = pd.read_csv("output_12mo/bitcoin.csv")
+    df = pd.read_csv("trentOutput/bitcoin.csv")
     N = df.shape[1]
     true_price = np.zeros((N+1,6))
     mu = np.zeros((N,6))
@@ -21,7 +21,7 @@ def get_data():
         df = pd.read_csv("input_12mo/"+name+".csv")
         true_price[:,n] = df["Close"][-N-1:]
         
-        df = pd.read_csv("output_12mo/"+name+".csv")
+        df = pd.read_csv("trentOutput/"+name+".csv")
         mu[:,n] = np.mean(df, axis=0)
         sigma[:,n] = np.std(df, axis=0)
         n+=1
@@ -34,12 +34,12 @@ def get_data():
 
 def calc_dist(u, s):
     
-    mu_delta = u[1:] - u[0]
-    sigma_delta = np.sqrt(s[1:]**2 + s[0]**2)
+    maxNdx = np.argmax(u)
+    mu_delta = u - u[maxNdx]
+    sigma_delta = np.sqrt(s**2 + s[maxNdx]**2)
     
-    P_best = np.zeros(u.shape) # Pr{largest return}
-    P_best[1:] = stats.norm(0,1).cdf(mu_delta/sigma_delta)
-    P_best[0] = 1-max(P_best)
+    P_best = stats.norm(0,1).cdf(mu_delta/sigma_delta) # Pr{largest return}
+    if len(u)>1: P_best[maxNdx] = 1-np.sort(P_best)[-2]
     
     weighted_P_largest = P_best * u
     W = weighted_P_largest / sum(weighted_P_largest)
@@ -50,8 +50,8 @@ true_price, true_chg, est_chg, est_sig = get_data()
 
 P_lose = stats.norm(est_chg, est_sig).cdf(0)
 
-risk_thold = 0.1 # if P_loose > this, sell it
-gain_thold = 0.01 # if est gain is < this, sell it
+risk_thold = 0.25 # if P_loose > this, sell it
+gain_thold = 0.005 # if est gain is < this, sell it
 acct_balance = true_price[0,0] + np.zeros(len(true_price))
 day_chg = np.zeros(len(est_chg))
 
