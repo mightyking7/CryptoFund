@@ -25,9 +25,9 @@ def load_extract(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'testLong/{cryptocurrency}.csv')
+    df = pd.read_csv(f'input_12mo/{cryptocurrency}.csv')
     df = df['Close'].copy()
-    df = df[-25:].copy()
+    df = df[-183:].copy()
     return df
 
 def load_predict(cryptocurrency):
@@ -184,18 +184,25 @@ for j in range(trade_days):
         else:
             min_gain = 'None'
 
-    if min_gain != 'None':
+    if min_gain != 'None' and min_gain != max_gain:
         allocate = isaac_input.loc[min_gain, "Weights"] * isaac_input.loc[min_gain, "C_value"]
 
         update = (1 - isaac_input.loc[min_gain, "C_value"]) * isaac_input.loc[min_gain, "Weights"]
 
         isaac_input.loc[min_gain, "Weights"] = update
 
-        new_currency = (allocate / isaac_input.loc[max_gain, "CurrentPrice"]) * isaac_input.loc[min_gain , "CurrentPrice"]
+        new_currency = (allocate / isaac_input.loc[max_gain, "CurrentPrice"]) * isaac_input.loc[min_gain, "CurrentPrice"]
 
         isaac_input.loc[max_gain, "Weights"] = new_currency
 
-    fund_value = isaac_input["Weights"] * isaac_input["CurrentPrice"]
+    fund_value = isaac_input["Weights"] * isaac_input["Pred_Price"]
+    #if fund_value.sum() < 4500 and j > 125:
+    # If curious in fixing icicle at j = 133rd day
+    if j == 133:
+        print(max_gain)
+        print(min_gain)
+        print(update, new_currency)
+        print(isaac_input)
 
     april_value[j] = fund_value.sum()
 
@@ -213,5 +220,9 @@ sns.set()
 f, ax = plt.subplots(figsize=(10, 5))
 sns.lineplot(data=np.array(df_btc), color='b', label="BTC");
 sns.lineplot(data=np.array(april_value)[:,0], color='r', label="JKIT");
-ax.set(xlabel='April Days', ylabel='Close Price [$]')
-plt.title("JKIT performance v.s. BTC April 2020", fontsize=18)
+ax.set(xlabel='Time [days]', ylabel='Close Price [$]')
+plt.title("JKIT performance v.s. BTC Last 6 months", fontsize=18)
+
+overall_gain = ((april_value[len(april_value)-1] / np.array(df_btc)[len(df_btc)-1]) - 1) * 100
+jkit_gain = ((np.array(april_value)[-1] - np.array(april_value)[0]) / np.array(april_value)[0]) * 100
+btc_gain = ((np.array(df_btc)[-1] - np.array(df_btc)[0]) / np.array(df_btc)[0]) * 100
