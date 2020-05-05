@@ -36,7 +36,7 @@ def load_predict(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
+    df = pd.read_csv(f'output_12mo/{cryptocurrency}.csv')
     #df = df.drop(0, axis=0).copy()
     #df = df['Close'].copy()
     #df = df[:-25].copy()
@@ -195,7 +195,7 @@ for j in range(trade_days):
 
         isaac_input.loc[max_gain, "Weights"] = new_currency
 
-    fund_value = isaac_input["Weights"] * isaac_input["Pred_Price"]
+    fund_value = isaac_input["Weights"] * isaac_input["CurrentPrice"]
 
     april_value[j] = fund_value.sum()
 
