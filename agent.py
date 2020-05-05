@@ -25,9 +25,9 @@ def load_extract(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'input_12mo/{cryptocurrency}.csv')
+    df = pd.read_csv(f'testLong/{cryptocurrency}.csv')
     df = df['Close'].copy()
-    df = df[-183:].copy()
+    df = df[-25:].copy()
     return df
 
 def load_predict(cryptocurrency):
@@ -36,7 +36,7 @@ def load_predict(cryptocurrency):
     :param cryptocurrency: crypto to trade
     :return: dataframe of data
     """
-    df = pd.read_csv(f'output_12mo/{cryptocurrency}.csv')
+    df = pd.read_csv(f'trentOutput/{cryptocurrency}.csv')
     #df = df.drop(0, axis=0).copy()
     #df = df['Close'].copy()
     #df = df[:-25].copy()
@@ -212,6 +212,6 @@ days = np.arange(trade_days)
 sns.set()
 f, ax = plt.subplots(figsize=(10, 5))
 sns.lineplot(data=np.array(df_btc), color='b', label="BTC");
-sns.lineplot(data=np.array(april_value), color='r', label="JKIT");
+sns.lineplot(data=np.array(april_value)[:,0], color='r', label="JKIT");
 ax.set(xlabel='April Days', ylabel='Close Price [$]')
-plt.title("JKIT performance v.s. BTC April 2020")
+plt.title("JKIT performance v.s. BTC April 2020", fontsize=18)
